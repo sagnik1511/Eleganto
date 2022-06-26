@@ -1,11 +1,10 @@
-from torch.utils.data import Dataset
+import os
 import torch
 import pandas as pd
-import numpy as np
-from src.utils.data import default_augment, pil2tensor
-import os
 from pathlib import Path
 from typing import Tuple, Optional
+from torch.utils.data import Dataset
+from src.utils.data import default_augment, pil2tensor
 
 
 class InterestDataset(Dataset):

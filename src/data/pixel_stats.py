@@ -1,10 +1,10 @@
 import os
 import numpy as np
 import pandas as pd
+from typing import List
+from pathlib import Path
 import matplotlib.pyplot as plt
 from src.utils.data import load_img
-from pathlib import Path
-from typing import List
 
 
 def pixel_distribution(path: Path, show_curve: bool = True) -> List[int]:
@@ -36,11 +36,12 @@ def add_pixel_dist_stats(dataframe: pd.DataFrame,
 
 
 if __name__ == '__main__':
-    root_directory = Path("D:/unsplash_project")
+    root_directory = Path(os.getcwd())
+    op_dir = os.path.join(root_directory, "processed_train.csv")
     train_image_directory = Path("dataset/images/train")
     df = pd.read_csv(os.path.join(root_directory, "dataset/train.csv"))
 
     df = add_pixel_dist_stats(df, root_dir=root_directory,
                               train_im_dir=train_image_directory)
 
-    df.to_csv("processed_train.csv", index=False)
+    df.to_csv(op_dir, index=False)
