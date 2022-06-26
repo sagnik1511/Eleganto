@@ -7,7 +7,7 @@ from termcolor import cprint
 
 def show_metric_scores(metrics: Dict[str, float]):
     metrics = {k: round(v, 6) for k, v in metrics.items()}
-    print(metrics)
+    return metrics
 
 
 def save_best_loss(model: torch.nn.Module, curr: float, best: float, directory: Path) -> float:

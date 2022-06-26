@@ -4,7 +4,7 @@ import pandas as pd
 from typing import List
 from pathlib import Path
 import matplotlib.pyplot as plt
-from src.utils.data import load_img
+from src.utils.data_utils import load_img
 
 
 def pixel_distribution(path: Path, show_curve: bool = True) -> List[int]:

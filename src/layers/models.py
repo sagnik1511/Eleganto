@@ -1,18 +1,18 @@
 import torch
 import torch.nn as nn
 from typing import Tuple
-import src.config.models as m
+import src.config.model as m
 from torchsummary import summary
 from src.layers import base_classes
-from src.utils.models import network_shape_update_conv, network_shape_update_pool
+from src.utils.model_utils import network_shape_update_conv, network_shape_update_pool
 
 
 class ElegantoNN(nn.Module):
 
-    def __init__(self, in_channels: int, config: dict,
-                 base_filter_dim: int = 16,
-                 input_shape: Tuple[int, int] = (224, 224)):
+    def __init__(self, in_channels: int, config: dict, base_filter_dim: int = 16,
+                 num_classes: int = 100, input_shape: Tuple[int, int] = (224, 224)):
         super(ElegantoNN, self).__init__()
+        self.nC = num_classes
         self.in_channels = in_channels
         self.conf = config
         self.filter_size = base_filter_dim
@@ -42,16 +42,18 @@ class ElegantoNN(nn.Module):
                     layer = nn.Linear(inC, desc)
                     inC = desc
                 else:
-                    layer = nn.Linear(inC, desc[0])
-                    act = nn.Sigmoid() if desc[1] == "S" else nn.Tanh()
+                    layer = nn.Sequential(
+                        nn.Linear(inC, desc[0]),
+                        nn.Sigmoid() if desc[1] == "S" else nn.Tanh())
             elif ltype == "F":
                 layer = nn.Flatten()
                 inC = inC * grid_shape[0] * grid_shape[1]
+            elif ltype == "T":
+                layer = nn.Linear(inC, self.nC)
             else:
                 raise NotImplementedError
 
             layers.append(layer)
-        layers.append(act)
 
         model = nn.Sequential(*layers)
         return model

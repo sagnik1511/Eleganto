@@ -1,23 +1,27 @@
 import time
 import torch
-from termcolor import cprint
+import warnings
 from pathlib import Path
-from torch.utils.data import DataLoader
-from typing import Tuple, Optional, Dict
-from src.utils.training import show_metric_scores, save_best_loss
-from src.viz.training import save_plots
 from torch.nn import MSELoss
+from termcolor import cprint
+from typing import Tuple, Dict
+from torch.utils.data import DataLoader
+from src.viz.training import save_plots
+from src.utils.training_utils import show_metric_scores, save_best_loss
+warnings.filterwarnings("ignore")
+
 
 LOSS_FN = MSELoss()
 
 
 def run_single_batch(inputs: Tuple[torch.Tensor, torch.Tensor],
                      model: torch.nn.Module, metrics: Dict[str, None],
-                     device: torch.device = torch.device("cpu")) -> Tuple[None, Dict[str, float]]:
+                     device: str = "cpu") -> Tuple[torch.nn.Module, Dict[str, float]]:
     res_dict = dict()
     X, y = inputs
-    X.to(device)
-    y.to(device)
+    if device != "cpu":
+        X = X.cuda()
+        y = y.float().cuda()
     op = model(X)
     loss = LOSS_FN(op, y)
     res_dict["loss"] = loss.item()
@@ -28,9 +32,10 @@ def run_single_batch(inputs: Tuple[torch.Tensor, torch.Tensor],
 
 def train_single_epoch(loader: DataLoader, model: torch.nn.Module,
                        optim: torch.optim, metrics: Dict[str, None],
-                       device: torch.device = torch.device("cpu"),
-                       log_index: int = 10) -> Tuple[Tuple[torch.nn.Module, None], Dict[str, float]]:
+                       device: str = "cpu",
+                       log_index: int = 10) -> Tuple[Tuple[torch.nn.Module, torch.nn.Module], Dict[str, float]]:
     epoch_res_dict = {k: 0.0 for k, _ in metrics.items()}
+    epoch_res_dict["loss"] = 0.0
     for step, inputs in enumerate(loader):
         optim.zero_grad()
         batch_loss, res_dict = run_single_batch(inputs, model, metrics, device)
@@ -45,8 +50,9 @@ def train_single_epoch(loader: DataLoader, model: torch.nn.Module,
 
 
 def validate_single_epoch(loader: DataLoader, model: torch.nn.Module, metrics: Dict[str, None],
-                          device: torch.device = torch.device("cpu")) -> Dict[str, float]:
+                          device: str = "cpu") -> Dict[str, float]:
     epoch_res_dict = {k: 0.0 for k, _ in metrics.items()}
+    epoch_res_dict["loss"] = 0.0
     for step, inputs in enumerate(loader):
         batch_loss, res_dict = run_single_batch(inputs, model, metrics, device)
         for name, value in res_dict.items():
@@ -57,15 +63,18 @@ def validate_single_epoch(loader: DataLoader, model: torch.nn.Module, metrics: D
 
 def train_model(train_loader: DataLoader, val_loader: DataLoader, model: torch.nn.Module,
                 optim: torch.optim, metrics: Dict[str, None],
-                num_epochs: int, result_dir: Path, device: torch.device = torch.device("cpu"),
+                num_epochs: int, result_dir: Path, device: str = "cpu",
                 log_index: int = 10):
     cprint("Initializing Training Job", "blue")
     process_init = time.time()
-    model.to(device)
-    print(f"Model loaded on {device.type}")
+    if device != "cpu":
+        model = model.cuda()
+    print(f"Model loaded on {device}")
     best_loss = torch.inf
     train_results = {k: [] for k, _ in metrics.items()}
+    train_results["loss"] = []
     val_results = {k: [] for k, _ in metrics.items()}
+    val_results["loss"] = []
     for epoch in range(num_epochs):
         print(f"Epoch {epoch+1} :")
         epoch_init = time.time()
@@ -80,9 +89,9 @@ def train_model(train_loader: DataLoader, val_loader: DataLoader, model: torch.n
         print(f"Training Scores : {show_metric_scores(train_res_dict)}")
         print(f"Validation Scores : {show_metric_scores(val_res_dict)}")
         best_loss = save_best_loss(model, val_res_dict["loss"], best_loss, result_dir)
-        print(f"Current Best Loss: {round(best_loss, 6)}")
+        print(f"Current Best Loss: {round(best_loss, 2)} seconds")
         print(f"Epoch Execution time : {round(time.time() - epoch_init, 6)}\n")
     save_plots(train_results, result_dir, dataname="training")
     save_plots(val_results, result_dir, dataname="validation")
     cprint("Training completed...", "blue")
-    print(f"Total Execution Time : {round(time.time() - process_init, 6)}\n")
+    print(f"Total Execution Time : {round(time.time() - process_init, 2)} seconds\n")
