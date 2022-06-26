@@ -30,17 +30,17 @@ result_directory = Path("results")
 def run():
     print(f"Current working directory : {os.getcwd()}")
     # Loading all objects
-    model = ElegantoNN(in_channels, config, filter_size, image_shape)
+    model = ElegantoNN(in_channels=in_channels, config=config, base_filter_dim=filter_size, input_shape=image_shape)
     optimizer = torch.optim.Adam(model.parameters(), lr, betas)
-    train_loader, val_loader = create_loader_from_csv(csv_path, batch_size, image_shape,
-                                                      train_validation_split_ratio,
-                                                      transform, shuffle, drop_last_batch)
+    train_loader, val_loader = create_loader_from_csv(csv_path=csv_path, batch_size=batch_size, inp_shape=image_shape,
+                                                      ratio=train_validation_split_ratio,
+                                                      augment=transform, shuffle=shuffle, drop_last=drop_last_batch)
 
     # Triggering training function
-    train_model(train_loader, val_loader, model,
-                optimizer, metrics,
-                num_epochs, result_directory,
-                device, log_index)
+    train_model(train_loader=train_loader, val_loader=val_loader, model=model,
+                optim=optimizer, metrics=metrics,
+                num_epochs=num_epochs, result_dir=result_directory,
+                device=device, log_index=log_index)
 
 
 if __name__ == '__main__':
