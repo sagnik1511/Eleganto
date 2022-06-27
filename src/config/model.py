@@ -1,6 +1,6 @@
 
 
-ELEGANTONN_A = [
+ELEGANTONN_A_R = [
         ["C", [7, 1, 0]],
         ["AP", 2],
         ["C", [5, 1, 0]],
