@@ -1,7 +1,9 @@
 from typing import Tuple
 
 
-def network_shape_update_conv(input_shape: Tuple[int, int], kernel_size: int = 3, stride: int = 1, padding: int = 0):
+def network_shape_update_conv(input_shape: Tuple[int, int],
+                              kernel_size: int = 3, stride: int = 1,
+                              padding: int = 0) -> Tuple[int, int]:
     height, width = input_shape
     updated_height = (height - kernel_size + 2 * padding) // stride + 1
     updated_width = (width - kernel_size + 2 * padding) // stride + 1
@@ -9,7 +11,8 @@ def network_shape_update_conv(input_shape: Tuple[int, int], kernel_size: int = 3
     return updated_height, updated_width
 
 
-def network_shape_update_pool(input_shape: Tuple[int, int], kernel_size: int):
+def network_shape_update_pool(input_shape: Tuple[int, int],
+                              kernel_size: int) -> Tuple[int, int]:
     height, width = input_shape
     updated_height = height // kernel_size
     updated_width = width // kernel_size

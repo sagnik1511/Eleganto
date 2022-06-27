@@ -20,6 +20,9 @@ class ElegantoNN(nn.Module):
         self.model = self._build_model()
 
     def _build_model(self) -> nn.Sequential:
+        print("Building Model...")
+        print("Configuration Found :")
+        print(self.conf)
         layers = []
         grid_shape = self.inp_shape
         inC, outC = self.in_channels, self.filter_size
@@ -41,10 +44,13 @@ class ElegantoNN(nn.Module):
                 if isinstance(desc, int):
                     layer = nn.Linear(inC, desc)
                     inC = desc
-                else:
+                elif isinstance(desc, list):
                     layer = nn.Sequential(
                         nn.Linear(inC, desc[0]),
-                        nn.Sigmoid() if desc[1] == "S" else nn.Tanh())
+                        nn.Sigmoid() if desc[1] == "S" else NotImplementedError
+                    )
+                else:
+                    raise FileNotFoundError
             elif ltype == "F":
                 layer = nn.Flatten()
                 inC = inC * grid_shape[0] * grid_shape[1]
@@ -54,7 +60,7 @@ class ElegantoNN(nn.Module):
                 raise NotImplementedError
 
             layers.append(layer)
-
+        print("Packing Layers in Sequential Object...")
         model = nn.Sequential(*layers)
         return model
 

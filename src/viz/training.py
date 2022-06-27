@@ -12,5 +12,6 @@ def save_plots(metric_dict: Dict[str, float], directory: Path,
         plt.plot(array, label=title)
     plt.legend()
     filename = os.path.join(directory, "scores", f"{dataname}_results.png")
+    print(f"{dataname} saved at {filename}")
     plt.savefig(filename)
     plt.close()
